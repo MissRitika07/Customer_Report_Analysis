@@ -1,0 +1,208 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name your data analyst agent . How can I assist you today?",
+        "options": {
+          "inputPlaceholder": "Type your question..",
+          "responseMode": "lastNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -256,
+        32
+      ],
+      "id": "c3fc214b-febf-4d1c-abfb-60bb99e39de4",
+      "name": "When chat message received",
+      "webhookId": "303d3434-51bf-45ae-973b-ffaeb368b3ca"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an autonomous Business & Customer Analytics Agent in n8n. Your mission is immediate, end-to-end execution without user interaction, confirmation requests, or conversational commentary.\n\n### OPERATIONAL RULES:\n1. Scope Detection:\n   - Specific Region Requested (e.g., North, East, West, South): Scope the analysis and data strictly to that region.\n   - No Region Specified: Automatically aggregate and generate analysis for ALL regions combined.\n\n2. Tool Execution (Silent & Autonomous):\n   - Never ask for confirmation to generate files or send emails. Execute immediately.\n   - Auto-generate the required PDF and Excel analytical reports for the determined scope using the attached file generation tools.\n   - When an email address is provided in the input, call the Gmail/Email node immediately to send the report and attach all generated PDF and Excel files.\n\n3. Zero Conversational Output:\n   - Do NOT output messages like \"I will send this now\", \"Please confirm if you want me to proceed\", \"Here is your report\", or status updates.\n   - If an email is sent via a tool, the final returned output must ONLY be the rendered HTML email body.\n\n---\n\n### EMAIL HTML TEMPLATE & STYLING RULES:\nGenerate an executive-level, responsive HTML email body adhering to these styling standards:\n- Output raw, valid HTML only. Do NOT include markdown code blocks (no ```html), preambles, or postscripts.\n- Do NOT include email headers (To, From, Subject) in the body.\n- Styling: Modern corporate palette (dark slate #1e293b headers, neutral body text #334155, subtle #e2e8f0 borders, clean light background).\n- Typography: font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif.\n- Container: Max-width 600px, centered (margin: 0 auto;), table widths set to 100%.\n\n### REQUIRED EMAIL SECTIONS (IN ORDER):\n1. Header: Clean title: \"[Region Name / Company-wide] Customer Performance & Analysis Summary\"\n2. Executive Summary: 2–3 concise sentences outlining core findings and customer trends.\n3. Key Metric Cards: Prominent, styled callout blocks displaying:\n   - Total Records Analyzed\n   - Total Revenue / Order Value\n4. Breakdown Table: Clean HTML table (Region/Segment | Customer Count | Total Value | Share).\n5. Attachments Section: Explicit notice: \"The corresponding comprehensive analytical PDF and Excel data sheets are attached to this email for detailed review.\"\n6. Sign-off:\n   Regards,<br>\n   <strong>Automated Reporting System</strong>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        80,
+        16
+      ],
+      "id": "07d8626c-f7ed-484d-8d44-6ccc6d0d68b0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        224
+      ],
+      "id": "2a864fc4-d30c-422e-b245-ccdbc231ad89",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        176,
+        224
+      ],
+      "id": "bc4cd4a2-1a06-4e7f-9c90-696a26e2b6e7",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1mvu6poemTMnBu1L0XqXHh1aaz3ke0Axu3uZVNPru7XA/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mvu6poemTMnBu1L0XqXHh1aaz3ke0Axu3uZVNPru7XA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        336,
+        224
+      ],
+      "id": "3938d7cb-9632-4f63-945b-67c8266508a6",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vc0zvK9lFWgGYmCl",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "ritikamolawade736@gmail.com",
+        "subject": "customer analysis report ",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        208
+      ],
+      "id": "a898d991-9b9d-4ee2-83a3-fef51dcb1527",
+      "name": "Send a message in Gmail",
+      "webhookId": "dd72b707-497a-4057-bc08-1887e230613f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ZPfApM9c9rBwCJpR",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4a94def5-0abd-418d-ad6c-babcaa0534e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "332b3dc8c3eb9642f93ad63999f393633ce279d88bb309ab1dc16ed3816d9569"
+  },
+  "nodeGroups": [],
+  "id": "URhJAi4VHw5F28kR",
+  "tags": []
+}
